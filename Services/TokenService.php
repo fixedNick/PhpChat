@@ -11,7 +11,7 @@ class TokenService extends ServiceBase
         global $server;
         $token = $this->GenerateToken();
         echo '[T] ServerToken Generated' . PHP_EOL;
-        
+
         $this->ServerToken = $token;
         $server->services[Services::DB]->UpdateServerToken($token);
 
@@ -24,6 +24,15 @@ class TokenService extends ServiceBase
         if($size % 2 != 0)
             $size = $size == 1 ? $size + 1 : $size - 1; 
         return bin2hex(random_bytes($size / 2));
+    }
+    public function IsServerTokenValid($token)
+    {
+        return $this->IsTokensValid($token, $this->ServerToken);
+    }
+
+    public function IsTokensValid($token1, $token2)
+    {
+        return hash_equals($token1, $token2);
     }
 
 }
