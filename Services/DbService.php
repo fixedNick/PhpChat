@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/Sql/pwd.php';
 
 class Tables 
 {
@@ -6,12 +7,12 @@ class Tables
     const CLIENTS = "clients";   
 }
 
-class Server
+class TServer
 {
     const Token = "token";
 }
 
-class Clients
+class TClients
 {
     const ID = 'Id';
     const LOGIN = 'Login';
@@ -25,7 +26,7 @@ class Clients
 class DbService extends ServiceBase 
 {
     private $db; 
-    
+
     public function Run()
     {
         echo '[+] DbService started' . PHP_EOL;
@@ -43,8 +44,10 @@ class DbService extends ServiceBase
     }
 
     public function UpdateServerToken($token)
-    {
-
+    {   
+        echo "[DB] Updated server Token: $token" . PHP_EOL;
+        $query = "UPDATE " . Tables::SERVER ." SET " . TServer::Token ."='$token' WHERE ID = 0";
+        $this->db->query($query);
     }
 }
 ?>

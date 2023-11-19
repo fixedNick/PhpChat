@@ -3,8 +3,7 @@ function classAutoloader($className)
 {
     $classDirectories = [
         __DIR__ . '/Services/',
-        __DIR__ . '/Models/',
-        __DIR__ . '/Services/Sql'
+        __DIR__ . '/Models/'
     ];
 
     $classFilePath = str_replace('\\', '/', $className) . '.php';

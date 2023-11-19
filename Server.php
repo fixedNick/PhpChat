@@ -20,8 +20,8 @@ class Server
         $this->services = [
             Services::DB => new DbService(),
             Services::CLIENTS => new ClientsService(),
-            Services::MESSAGES => new MessagesService(),
-            Services::TOKEN => new TokenService()
+            Services::TOKEN => new TokenService(),
+            Services::MESSAGES => new MessagesService()
         ];
 
         foreach($this->services as $service)
