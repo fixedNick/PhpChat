@@ -53,9 +53,12 @@ class DbService extends ServiceBase
     public function IsLoginFree($login)
     {
         $login = $this->db->real_escape_string($login);
-        echo "[DB] Is Login Free Called for `$login`" . PHP_EOL;
+        echo "[DB] Checking is login `$login` free..." . PHP_EOL;
         $query = "SELECT * FROM ". Tables::CLIENTS ." WHERE " .TClients::LOGIN. "='$login'";
         $result = $this->db->query($query);
+
+        $isExists = $result->num_rows > 0 ? 'exists' : 'free';
+        echo "[DB] Login `$login` is [".$isExists."]" . PHP_EOL;
         return $result->num_rows <= 0;
     }
 
@@ -65,9 +68,9 @@ class DbService extends ServiceBase
         $login = $this->db->real_escape_string($login);
         $password = $this->db->real_escape_string($password);
 
-        $query = "INSER INTO ".Tables::CLIENTS." (`".TCLients::LOGIN."`, `".TCLients::PASSWORD."`) VALUES ('$login','$password')";
+        $query = "INSERT INTO ".Tables::CLIENTS." (`".TCLients::LOGIN."`, `".TCLients::PASSWORD."`) VALUES ('$login','$password')";
         $result = $this->db->query($query);
-        echo "[DB] Saved in db `$result->num_rows` rows". PHP_EOL;
+        echo "[DB] Saved in db, result: $result". PHP_EOL;
     }
 
     public function IsCredentialsValid($login, $password)
@@ -86,7 +89,7 @@ class DbService extends ServiceBase
         echo "[DB] Updating sign-in info for `$login`". PHP_EOL;
         $query = "UPDATE ".Tables::CLIENTS." SET `".TClients::TOKEN."`='$token', `".TClients::LASTLOGIN."`='$authTime' WHERE `".TClients::LOGIN."`='$login'";
         $result = $this->db->query($query);
-        echo "[DB] Update table Clients, affected `$result->num_rows` rows". PHP_EOL;
+        echo "[DB] Update table Clients, result: $result". PHP_EOL;
     }
 
     public function GetClient($token)
@@ -103,6 +106,8 @@ class DbService extends ServiceBase
         $client->Id = $c[TClients::ID];
         $client->Token = $c[TClients::TOKEN];
         $client->LastLogin = $c[TClients::LASTLOGIN];
+
+        echo "[DB] Client `".$client->Login."` with id `".$client->Id."` and Token `".$client->Token."` successfully received form db".PHP_EOL;
         return $client;
     }
 }

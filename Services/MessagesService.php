@@ -22,9 +22,10 @@ class MessagesService extends ServiceBase
         {
             echo 'NEW MESSAGE: ' . $data . PHP_EOL;
             $json = json_decode($data, true);
-            if(isset($json['command']) && isset($json['server-token']))
+            if(isset($json['command']) && isset($json['server_token']))
             {
-                $this->OnCommand($connection, $json['command'], $json['server-token'], isset($json['data']) ? $json['data'] : '');
+                echo '[M] Recognized command: ' . $json['command'] . PHP_EOL;
+                $this->OnCommand($connection, $json['command'], $json['server_token'], isset($json['data']) ? $json['data'] : '');
                 return;
             }
 
@@ -52,6 +53,7 @@ class MessagesService extends ServiceBase
         $isValid = $server->services[Services::TOKEN]->IsServerTokenValid($serverToken);
         if($isValid === false)
         {
+            echo '[M] OnCommand - Server token is invalid.' . PHP_EOL;
             $this->SendError($connection, "Invalid s-token");
             return;
         }
@@ -64,46 +66,62 @@ class MessagesService extends ServiceBase
             case 'sign-in':
                 $this->SignInCommand($connection, $data);
                 break;
+            case 'is-client-online':
+                $this->IsClientOnlineCommand($connection, $data);
+                break;
         }
         
     }
 
     // region Commands
+    private function IsClientOnlineCommand($connection, $data)
+    {
+        if($this->IsRequiredFieldsReceived($data, ['recepient_login']) === false)
+        {
+            $this->SendError($connection, 'Fields in `data`: [recepient_login] is required');
+            return;
+        }
+        global $server;
+        $status = $server->services[Services::CLIENTS]->IsClientOnline($data['recepient_login']);
+        $response = json_encode(['status' => $status]);
+        $this->_SendTextMessage($connection, $response);
+        echo '[M] IsClientOnline status `'.$status.'` for client `'.$data['recepient_login'].'`'. PHP_EOL;
+    }
     private function SignUpCommand($connection, $data)
     {
-        if(!isset($data['data']['login']) || !isset($data['data']['password']))
+        if($this->IsRequiredFieldsReceived($data, ['login', 'password']) === false)
         {
             $this->SendError($connection, 'Fields in `data`: [login, password] is required');
             return;    
         }
         global $server;
-        $result = $server->services[Services::CLIENTS]->SignUpClient($data['data']['login'], $data['data']['password']);
+        $result = $server->services[Services::CLIENTS]->SignUpClient($data['login'], $data['password']);
         if($result === false)
         {
-            $this->SendError($connection, 'Client with login `'.$data['data']['login'].'` already exists');
+            $this->SendError($connection, 'Client with login `'.$data['login'].'` already exists');
             return;
         }
 
-        $this->CompleteSignUpIn($connection, $data['data']['login'], $data['data']['password']);
+        $this->CompleteSignUpIn($connection, $data['login'], $data['password']);
     }
 
     private function SignInCommand($connection, $data)
     {
-        if(!isset($data['data']['login']) || !isset($data['data']['password']))
+        if($this->IsRequiredFieldsReceived($data, ['login', 'password']) === false)
         {
             $this->SendError($connection, 'Fields in `data`: [login, password] is required');
             return;    
         }
         
         global $server;
-        $result = $server->services[Services::DB]->IsCredentialsValid($data['data']['login'], $data['data']['password']);
+        $result = $server->services[Services::DB]->IsCredentialsValid($data['login'], $data['password']);
         if($result === false)
         {
             $this->SendError($connection, 'Invalid credentials');
             return;
         }
 
-        $this->CompleteSignUpIn($connection, $data['data']['login'], $data['data']['password']);
+        $this->CompleteSignUpIn($connection, $data['login'], $data['password']);
     }
 
     private function CompleteSignUpIn($connection, $login, $password)
@@ -114,9 +132,24 @@ class MessagesService extends ServiceBase
 
         $response = json_encode(['token' => $client->Token, 'clients-online' => $clientsOnline]);
         $this->_SendTextMessage($connection, $response);
+        echo "[M] Auth for client with login `$login` is completed".PHP_EOL;
+        $this->BroadcastConnection($login, true);
     }
 
     // endregion Commands
+
+    private function IsRequiredFieldsReceived($data, $fields)
+    {
+        foreach($fields as $field)
+        {
+            if(!isset($data[$field]))
+            {
+                echo "[M] Required field not received `$field`".PHP_EOL;
+                return false;
+            }
+        }
+        return true;
+    }
 
     // REQUIRED CLIENT TOKEN
     private function OnMessage($connection, $data)  
@@ -142,6 +175,28 @@ class MessagesService extends ServiceBase
     private function _SendTextMessage($connection, $msg)
     {
         $connection->send($msg);
+    }
+
+    public function BroadcastConnection($clientLogin, $connected)
+    {
+        global $server;
+        $clients = $server->services[Services::CLIENTS]->GetOnlineClients();
+        foreach($clients as $c)
+        {
+            if($c->Login !== $clientLogin)
+            {
+                $msg = json_encode([
+                    's-token' => $server->services[Services::TOKEN]->GetServerToken(),
+                    'command' => [
+                        'command_name' => 'connection_info', 
+                        'is_connected' => $connected,
+                        'login' => $clientLogin
+                    ]
+                ]);
+                $this->_SendTextMessage($c->Connection, $msg);
+            }
+        }
+        echo "[M] Broadcast about new connection from `$clientLogin` successfuly send to all clients".PHP_EOL;
     }
 }
 ?>

@@ -2,6 +2,7 @@
 class ClientsService extends ServiceBase 
 {
     private $ClientsList;
+    public function GetOnlineClients() { return $this->ClientsList; }
     public function Run()
     {
         $ClientsList = [];
@@ -51,7 +52,7 @@ class ClientsService extends ServiceBase
         $server->services[Services::DB]->UpdateSignInInfo($login, $clientToken, time());
         $client = $server->services[Services::DB]->GetClient($clientToken);
         $client->Connection = $connection;
-        $this->ClientsList[$connection] = $client;
+        $this->ClientsList[] = $client;
         return $client;
     }
 }
