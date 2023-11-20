@@ -20,7 +20,7 @@ class MessagesService extends ServiceBase
         $this->socket->count = 16;
         $this->socket->onMessage = function($connection, $data)
         {
-            echo 'NEW MESSAGE: ' . $data . PHP_EOL;
+            echo '[M] Message received: ' . $data . PHP_EOL;
             $json = json_decode($data, true);
             if(isset($json['command']) && isset($json['server_token']))
             {
@@ -29,21 +29,45 @@ class MessagesService extends ServiceBase
                 return;
             }
 
-            if(isset($json['client-token']) && isset($json['from']) && isset($json['to']) && isset($json['type']))
+            if(isset($json['client_token']) && isset($json['from']) && isset($json['to']) && isset($json['type']))
             {
                 if($json['type'] == 'text' && isset($json['text']))
                 {
-                    // text message
+                    global $server;
+                    $realToken = $server->services[Services::DB]->GetClient($json['from'])->Token;
+                    $isTokenValid = $server->services[Services::TOKEN]->IsTokensValid($json['client_token'], $realToken);
+                    if($isTokenValid)
+                    {
+                        $this->SendTextMessage($json['from'], $json['to'], $json['text']);
+                    }
                 }
             }
         };
 
         $this->socket->onClose = function($connection)
         {
-            echo 'CLIENT DISCONNECTED';
+            echo '[M] [-] Client disconnect process started..'. PHP_EOL;
+            global $server;
+            $client = $server->services[Services::CLIENTS]->GetClientByConnection($connection);
+            if($client === null)
+            {
+                echo '[M] [-] Client not in local storage, disconnect completed'. PHP_EOL;
+                return;
+            }
+            $this->OnDisconnect($client);
         };
 
         Worker::runAll();
+    }
+
+    private function OnDisconnect($client)
+    {
+        echo "[M] [-] Client for disconnect found in localstorage: `".$client->Login."`". PHP_EOL;
+        global $server;
+        $server->services[Services::CLIENTS]->Disconnect($client);
+        $this->BroadcastConnection($client->Login, false);
+        echo "[M] [-] Disconnecting client `".$client->Login."` completed".PHP_EOL;
+        unset($client);
     }
 
     // REQUIRED SERVER TOKEN
@@ -167,9 +191,22 @@ class MessagesService extends ServiceBase
     {
         global $server;
         $recepient = $server->services[Services::CLIENTS]->GetClient($to);
-        $sender = $server->services[Services::CLIENTS]->GetClient($from);
 
-        $this->_SendTextMessage($recepient->Connection, json_encode(['from' => $sender->Login, 'text' => $text]));
+        if($recepient === null)
+        {  
+            echo "[M] Recepient with login `$to` not found".PHP_EOL;
+            return;
+        }
+
+        $sender = $server->services[Services::CLIENTS]->GetClient($from);
+        if($sender === null)
+        {  
+            echo "[M] Sender with login `$from` not found".PHP_EOL;
+            return;
+        }
+        echo "[M] Message successfully send from `$from` to `$to`";
+        $sToken = $server->services[Services::TOKEN]->GetServerToken();
+        $this->_SendTextMessage($recepient->Connection, json_encode(['s_token' => $sToken, 'message_data' => ['from' => $sender->Login, 'text' => $text]]));
     }
 
     private function _SendTextMessage($connection, $msg)
@@ -186,7 +223,7 @@ class MessagesService extends ServiceBase
             if($c->Login !== $clientLogin)
             {
                 $msg = json_encode([
-                    's-token' => $server->services[Services::TOKEN]->GetServerToken(),
+                    's_token' => $server->services[Services::TOKEN]->GetServerToken(),
                     'command' => [
                         'command_name' => 'connection_info', 
                         'is_connected' => $connected,

@@ -92,13 +92,23 @@ class DbService extends ServiceBase
         echo "[DB] Update table Clients, result: $result". PHP_EOL;
     }
 
-    public function GetClient($token)
+    public function GetClient($login)
     {
-        echo "[DB] Receiving client..." . PHP_EOL;
-        $query = "SELECT * FROM `".Tables::CLIENTS."` WHERE `".TClients::TOKEN."`='$token'";
+        return $this->GetClientBy($login, TClients::LOGIN);
+    }
+
+    public function GetClientByToken($token)
+    {
+        return $this->GetClientBy($token, TClients::TOKEN);
+    }
+
+    private function GetClientBy($sendingData, $by)
+    {
+        echo "[DB] Receiving client by `$by`..." . PHP_EOL;
+        $query = "SELECT * FROM `".Tables::CLIENTS."` WHERE `".$by."`='$sendingData'";
         $result = $this->db->query($query);
         if($result->num_rows <= 0)
-            throw new Exception("Undefined exception, cannot receive client from database by token: `$token`");
+            return null;
 
         $c = $result->fetch_assoc();
         $client = new Client();

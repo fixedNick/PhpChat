@@ -11,9 +11,10 @@ class ClientsService extends ServiceBase
 
     public function GetOnlineLogins()
     {
-        return array_map(function($client) {
-            return $client->Login;
-        }, $this->ClientsList);
+        $logins = [];
+        foreach($this->ClientsList as $client)
+            $logins[] = $client->Login;
+        return $logins;
     }
     public function IsClientOnline($login)
     {
@@ -25,6 +26,25 @@ class ClientsService extends ServiceBase
         return false;
     }
 
+    public function Disconnect($client)
+    {
+        foreach ($this->ClientsList as $key => $c) {
+            if ($c->Login === $client->Login) {
+                unset($this->ClientsList[$key]);
+                break;
+            }
+        }
+    }
+
+    public function GetClientByConnection($connection)
+    {
+        foreach($this->ClientsList as $client)
+        {
+            if($client->Connection === $connection)
+                return $client;
+        }
+        return null;
+    }
     public function GetClient($login)
     {
         foreach($this->ClientsList as $client)
@@ -50,7 +70,7 @@ class ClientsService extends ServiceBase
         global $server;
         $clientToken = $server->services[Services::TOKEN]->GenerateToken();
         $server->services[Services::DB]->UpdateSignInInfo($login, $clientToken, time());
-        $client = $server->services[Services::DB]->GetClient($clientToken);
+        $client = $server->services[Services::DB]->GetClientByToken($clientToken);
         $client->Connection = $connection;
         $this->ClientsList[] = $client;
         return $client;
