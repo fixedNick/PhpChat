@@ -10,7 +10,6 @@ class Services
     const MESSAGES = 'Messages';
     const TOKEN = 'Token';
     const LOGGER = 'Logger';
-
 }
 class Server 
 {

@@ -38,7 +38,7 @@ class DbService extends ServiceBase
         // 
         $host = "127.0.0.1";
         $user = "root";
-        $password = Passwords::$localPassword;
+        $password = Passwords::$remotePassword;
         $database = "maindb";
         //
         $this->db = new mysqli($host, $user, $password, $database);

@@ -7,6 +7,7 @@ class LoggerService
     public function __construct($server) {
         $this->server = $server;
     }
+
     public function Run()
     {
     }
