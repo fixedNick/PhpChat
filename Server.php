@@ -9,8 +9,7 @@ class Services
     const CLIENTS = 'Clients';
     const MESSAGES = 'Messages';
     const TOKEN = 'Token';
-    const LOGGER = 'Token';
-
+    const LOGGER = 'Logger';
 }
 class Server 
 {
