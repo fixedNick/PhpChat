@@ -32,8 +32,6 @@ class Server
         $this->services[Services::LOGGER]->Write('Server Run completed');
     }
 }
-global $server;
 $server = new Server();
 $server->Run();
-
 ?>
