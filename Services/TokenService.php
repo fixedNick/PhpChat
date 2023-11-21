@@ -2,18 +2,21 @@
 class TokenService extends ServiceBase 
 {
     private $ServerToken = null;
+    private $server;
+    public function __construct($server) {
+        $this->server = $server;
+    }
     public function GetServerToken() { return $this->ServerToken; }
 
     public function Run()
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write('[+] TokenService started');
+        $this->server->services[Services::LOGGER]->Write('[+] TokenService started');
 
         $token = $this->GenerateToken();
-        $server->services[Services::LOGGER]->Write('[T] ServerToken Generated');
+        $this->server->services[Services::LOGGER]->Write('[T] ServerToken Generated');
 
         $this->ServerToken = $token;
-        $server->services[Services::DB]->UpdateServerToken($token);
+        $this->server->services[Services::DB]->UpdateServerToken($token);
 
     }
 

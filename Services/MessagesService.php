@@ -225,9 +225,6 @@ class MessagesService extends ServiceBase
 
     public function BroadcastConnection($clientLogin, $connected)
     {
-        if($clientLogin == "TESTUSER1" || $connected == "TESTUSER2")
-            return;
-        
         $clients = $this->server->services[Services::CLIENTS]->GetOnlineClients();
         foreach($clients as $c)
         {

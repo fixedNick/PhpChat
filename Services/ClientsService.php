@@ -4,14 +4,6 @@ class ClientsService extends ServiceBase
     private $server;
     public function __construct($server) {
         $this->server = $server;
-
-        $cl1 = new Client();
-        $cl1->Login ="TESTUSER1";
-        $cl2 = new Client();
-        $cl2->Login ="TESTUSER2";
-        
-        $this->server->clients[] = $cl1;
-        $this->server->clients[] = $cl2;
     }
 
     public function GetOnlineClients() { return $this->server->clients; }
@@ -73,7 +65,6 @@ class ClientsService extends ServiceBase
 
     public function SignUpClient($login, $password)
     {
-        
         $loginFree = $this->server->services[Services::DB]->IsLoginFree($login);
         if($loginFree === false)
             return false;
@@ -83,7 +74,6 @@ class ClientsService extends ServiceBase
 
     public function CompleteAuthReturnClient($connection, $login, $password)
     {
-        
         $clientToken = $this->server->services[Services::TOKEN]->GenerateToken();
         $this->server->services[Services::DB]->UpdateSignInInfo($login, $clientToken, time());
         $client = $this->server->services[Services::DB]->GetClientByToken($clientToken);
