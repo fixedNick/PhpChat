@@ -9,8 +9,6 @@ class ClientsService extends ServiceBase
     public function GetOnlineClients() { return $this->server->clients; }
     public function Run()
     {
-        $ClientsList = [];
-        
         $this->server->services[Services::LOGGER]->Write('[+] ClientsService started');
     }
 
