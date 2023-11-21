@@ -2,10 +2,9 @@
 
 class LoggerService
 {
-    private $logPath;
+    private $logPath = "log.txt";
     public function Run()
     {
-        $this->logPath = "log.txt";
     }
     public function Write($message)
     {

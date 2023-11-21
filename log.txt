@@ -1,2 +1,1 @@
-[2023-11-21 13:32:42] [+] MessagesService started
-[2023-11-21 13:32:42] [M] Waiting for server Token
+
