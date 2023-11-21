@@ -29,7 +29,8 @@ class DbService extends ServiceBase
 
     public function Run()
     {
-        echo '[+] DbService started' . PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write('[+] DbService started');
         // 
         $host = "127.0.0.1";
         $user = "root";
@@ -39,43 +40,47 @@ class DbService extends ServiceBase
         $this->db = new mysqli($host, $user, $password, $database);
 
         if ($this->db->connect_error) {
-            die("Connection error: " . $this->db->connect_error);
+        $server->services[Services::LOGGER]->Write("Connection error: " . $this->db->connect_error);
         }
     }
 
     public function UpdateServerToken($token)
     {   
-        echo "[DB] Updated server Token: $token" . PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write("[DB] Updated server Token: $token");
         $query = "UPDATE " . Tables::SERVER ." SET " . TServer::Token ."='$token' WHERE ID = 0";
         $this->db->query($query);
     }
 
     public function IsLoginFree($login)
     {
+        global $server;
         $login = $this->db->real_escape_string($login);
-        echo "[DB] Checking is login `$login` free..." . PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[DB] Checking is login `$login` free...");
         $query = "SELECT * FROM ". Tables::CLIENTS ." WHERE " .TClients::LOGIN. "='$login'";
         $result = $this->db->query($query);
 
         $isExists = $result->num_rows > 0 ? 'exists' : 'free';
-        echo "[DB] Login `$login` is [".$isExists."]" . PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[DB] Login `$login` is [".$isExists."]");
         return $result->num_rows <= 0;
     }
 
     public function SaveClient($login, $password)
     {
-        echo "[DB] Saving client `$login`". PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write("[DB] Saving client `$login`");
         $login = $this->db->real_escape_string($login);
         $password = $this->db->real_escape_string($password);
 
         $query = "INSERT INTO ".Tables::CLIENTS." (`".TCLients::LOGIN."`, `".TCLients::PASSWORD."`) VALUES ('$login','$password')";
         $result = $this->db->query($query);
-        echo "[DB] Saved in db, result: $result". PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[DB] Saved in db, result: $result");
     }
 
     public function IsCredentialsValid($login, $password)
     {
-        echo "[DB] Check credentials for `$login`".PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write("[DB] Check credentials for `$login`");
         $login = $this->db->real_escape_string($login);
         $password = $this->db->real_escape_string($password);
 
@@ -86,10 +91,11 @@ class DbService extends ServiceBase
 
     public function UpdateSignInInfo($login, $token, $authTime)
     {
-        echo "[DB] Updating sign-in info for `$login`". PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write("[DB] Updating sign-in info for `$login`");
         $query = "UPDATE ".Tables::CLIENTS." SET `".TClients::TOKEN."`='$token', `".TClients::LASTLOGIN."`='$authTime' WHERE `".TClients::LOGIN."`='$login'";
         $result = $this->db->query($query);
-        echo "[DB] Update table Clients, result: $result". PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[DB] Update table Clients, result: $result");
     }
 
     public function GetClient($login)
@@ -104,7 +110,8 @@ class DbService extends ServiceBase
 
     private function GetClientBy($sendingData, $by)
     {
-        echo "[DB] Receiving client by `$by`..." . PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write("[DB] Receiving client by `$by`...");
         $query = "SELECT * FROM `".Tables::CLIENTS."` WHERE `".$by."`='$sendingData'";
         $result = $this->db->query($query);
         if($result->num_rows <= 0)
@@ -117,7 +124,7 @@ class DbService extends ServiceBase
         $client->Token = $c[TClients::TOKEN];
         $client->LastLogin = $c[TClients::LASTLOGIN];
 
-        echo "[DB] Client `".$client->Login."` with id `".$client->Id."` and Token `".$client->Token."` successfully received form db".PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[DB] Client `".$client->Login."` with id `".$client->Id."` and Token `".$client->Token."` successfully received form db");
         return $client;
     }
 }

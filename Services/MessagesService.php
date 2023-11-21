@@ -9,22 +9,23 @@ class MessagesService extends ServiceBase
     public function Run()
     {
         global $server;
-        echo '[+] MessagesService started' . PHP_EOL;
-        echo '[M] Waiting for server Token' . PHP_EOL;
+        $server->services[Services::LOGGER]->Write('[+] MessagesService started');
+        $server->services[Services::LOGGER]->Write('[M] Waiting for server Token');
         while($server->services[Services::TOKEN]->GetServerToken() === null)
         {
             sleep(1);
         }
-        echo '[M] Server Token received, starting socket' . PHP_EOL;
         $this->socket = new Worker("websocket://0.0.0.0:1234");
+        $server->services[Services::LOGGER]->Write('[M] Server Token received, starting socket');
         $this->socket->count = 16;
         $this->socket->onMessage = function($connection, $data)
         {
-            echo '[M] Message received: ' . $data . PHP_EOL;
+            global $server;
+            $server->services[Services::LOGGER]->Write('[M] Message received: ' . $data);
             $json = json_decode($data, true);
             if(isset($json['command']) && isset($json['server_token']))
             {
-                echo '[M] Recognized command: ' . $json['command'] . PHP_EOL;
+                $server->services[Services::LOGGER]->Write('[M] Recognized command: ' . $json['command']);
                 $this->OnCommand($connection, $json['command'], $json['server_token'], isset($json['data']) ? $json['data'] : '');
                 return;
             }
@@ -46,12 +47,13 @@ class MessagesService extends ServiceBase
 
         $this->socket->onClose = function($connection)
         {
-            echo '[M] [-] Client disconnect process started..'. PHP_EOL;
+            global $server;
+            $server->services[Services::LOGGER]->Write('[M] [-] Client disconnect process started..');
             global $server;
             $client = $server->services[Services::CLIENTS]->GetClientByConnection($connection);
             if($client === null)
             {
-                echo '[M] [-] Client not in local storage, disconnect completed'. PHP_EOL;
+                $server->services[Services::LOGGER]->Write('[M] [-] Client not in local storage, disconnect completed');
                 return;
             }
             $this->OnDisconnect($client);
@@ -62,11 +64,11 @@ class MessagesService extends ServiceBase
 
     private function OnDisconnect($client)
     {
-        echo "[M] [-] Client for disconnect found in localstorage: `".$client->Login."`". PHP_EOL;
         global $server;
+        $server->services[Services::LOGGER]->Write("[M] [-] Client for disconnect found in localstorage: `".$client->Login."`");
         $server->services[Services::CLIENTS]->Disconnect($client);
         $this->BroadcastConnection($client->Login, false);
-        echo "[M] [-] Disconnecting client `".$client->Login."` completed".PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[M] [-] Disconnecting client `".$client->Login."` completed");
         unset($client);
     }
 
@@ -77,7 +79,7 @@ class MessagesService extends ServiceBase
         $isValid = $server->services[Services::TOKEN]->IsServerTokenValid($serverToken);
         if($isValid === false)
         {
-            echo '[M] OnCommand - Server token is invalid.' . PHP_EOL;
+            $server->services[Services::LOGGER]->Write('[M] OnCommand - Server token is invalid.');
             $this->SendError($connection, "Invalid s-token");
             return;
         }
@@ -109,7 +111,7 @@ class MessagesService extends ServiceBase
         $status = $server->services[Services::CLIENTS]->IsClientOnline($data['recepient_login']);
         $response = json_encode(['status' => $status]);
         $this->_SendTextMessage($connection, $response);
-        echo '[M] IsClientOnline status `'.$status.'` for client `'.$data['recepient_login'].'`'. PHP_EOL;
+        $server->services[Services::LOGGER]->Write('[M] IsClientOnline status `'.$status.'` for client `'.$data['recepient_login'].'`');
     }
     private function SignUpCommand($connection, $data)
     {
@@ -156,7 +158,7 @@ class MessagesService extends ServiceBase
 
         $response = json_encode(['token' => $client->Token, 'clients-online' => $clientsOnline]);
         $this->_SendTextMessage($connection, $response);
-        echo "[M] Auth for client with login `$login` is completed".PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[M] Auth for client with login `$login` is completed");
         $this->BroadcastConnection($login, true);
     }
 
@@ -164,11 +166,12 @@ class MessagesService extends ServiceBase
 
     private function IsRequiredFieldsReceived($data, $fields)
     {
+        global $server;
         foreach($fields as $field)
         {
             if(!isset($data[$field]))
             {
-                echo "[M] Required field not received `$field`".PHP_EOL;
+                $server->services[Services::LOGGER]->Write("[M] Required field not received `$field`");
                 return false;
             }
         }
@@ -194,17 +197,17 @@ class MessagesService extends ServiceBase
 
         if($recepient === null)
         {  
-            echo "[M] Recepient with login `$to` not found".PHP_EOL;
+            $server->services[Services::LOGGER]->Write("[M] Recepient with login `$to` not found");
             return;
         }
 
         $sender = $server->services[Services::CLIENTS]->GetClient($from);
         if($sender === null)
         {  
-            echo "[M] Sender with login `$from` not found".PHP_EOL;
+            $server->services[Services::LOGGER]->Write("[M] Sender with login `$from` not found");
             return;
         }
-        echo "[M] Message successfully send from `$from` to `$to`";
+        $server->services[Services::LOGGER]->Write("[M] Message successfully send from `$from` to `$to`");
         $sToken = $server->services[Services::TOKEN]->GetServerToken();
         $this->_SendTextMessage($recepient->Connection, json_encode(['s_token' => $sToken, 'message_data' => ['from' => $sender->Login, 'text' => $text]]));
     }
@@ -233,7 +236,7 @@ class MessagesService extends ServiceBase
                 $this->_SendTextMessage($c->Connection, $msg);
             }
         }
-        echo "[M] Broadcast about new connection from `$clientLogin` successfuly send to all clients".PHP_EOL;
+        $server->services[Services::LOGGER]->Write("[M] Broadcast about new connection from `$clientLogin` successfuly send to all clients");
     }
 }
 ?>

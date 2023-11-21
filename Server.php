@@ -9,6 +9,7 @@ class Services
     const CLIENTS = 'Clients';
     const MESSAGES = 'Messages';
     const TOKEN = 'Token';
+    const LOGGER = 'Token';
 
 }
 class Server 
@@ -21,7 +22,8 @@ class Server
             Services::DB => new DbService(),
             Services::CLIENTS => new ClientsService(),
             Services::TOKEN => new TokenService(),
-            Services::MESSAGES => new MessagesService()
+            Services::MESSAGES => new MessagesService(),
+            Services::LOGGER => new LoggerService(),
         ];
 
         foreach($this->services as $service)

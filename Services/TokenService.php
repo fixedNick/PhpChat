@@ -6,11 +6,11 @@ class TokenService extends ServiceBase
 
     public function Run()
     {
-        echo '[+] TokenService started' . PHP_EOL;
-
         global $server;
+        $server->services[Services::LOGGER]->Write('[+] TokenService started');
+
         $token = $this->GenerateToken();
-        echo '[T] ServerToken Generated' . PHP_EOL;
+        $server->services[Services::LOGGER]->Write('[T] ServerToken Generated');
 
         $this->ServerToken = $token;
         $server->services[Services::DB]->UpdateServerToken($token);

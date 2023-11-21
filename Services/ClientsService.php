@@ -6,7 +6,8 @@ class ClientsService extends ServiceBase
     public function Run()
     {
         $ClientsList = [];
-        echo '[+] ClientsService started' . PHP_EOL;
+        global $server;
+        $server->services[Services::LOGGER]->Write('[+] ClientsService started');
     }
 
     public function GetOnlineLogins()
@@ -52,6 +53,8 @@ class ClientsService extends ServiceBase
             if($client->Login === $login)
                 return $client;
         }
+        global $server;
+        $server->services[Services::LOGGER]->Write('[X][Exception] Client not found in local storage');
         throw new Exception("Client not found in local storage");
     }
 
