@@ -1,3 +1,4 @@
+
 <?php
 
 require_once __DIR__ . '/autoload.php';
@@ -24,9 +25,11 @@ class Server
             Services::MESSAGES => new MessagesService(),
             Services::LOGGER => new LoggerService(),
         ];
-
+	$this->services[Services::LOGGER]->Write("Server::Run called");
         foreach($this->services as $service)
             $service->Run();
+
+        $this->services[Services::LOGGER]->Write('Server Run completed');
     }
 }
 global $server;

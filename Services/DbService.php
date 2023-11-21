@@ -73,6 +73,7 @@ class DbService extends ServiceBase
         $password = $this->db->real_escape_string($password);
 
         $query = "INSERT INTO ".Tables::CLIENTS." (`".TCLients::LOGIN."`, `".TCLients::PASSWORD."`) VALUES ('$login','$password')";
+	$server->services[Services::LOGGER]->Write("Prepared query: `$query`");
         $result = $this->db->query($query);
         $server->services[Services::LOGGER]->Write("[DB] Saved in db, result: $result");
     }

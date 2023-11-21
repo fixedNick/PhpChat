@@ -15,8 +15,11 @@ class MessagesService extends ServiceBase
         {
             sleep(1);
         }
+<<<<<<< HEAD
         $this->socket = new Worker("websocket://0.0.0.0:1234");
-        $server->services[Services::LOGGER]->Write('[M] Server Token received, starting socket');
+=======erver->services[Services::LOGGER]->Write('[M] Server Token received, starting socket');
+        $this->socket = new Worker("websocket://127.0.0.1:1234");
+>>>>>>> bf5e36f9d1a76067c9152b1ba882919760ae96fd
         $this->socket->count = 16;
         $this->socket->onMessage = function($connection, $data)
         {
@@ -60,7 +63,6 @@ class MessagesService extends ServiceBase
         };
 
         Worker::runAll();
-        $server->services[Services::LOGGER]->Write('[M] Socket successfully started');
     }
 
     private function OnDisconnect($client)

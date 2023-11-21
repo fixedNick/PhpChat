@@ -1,8 +1,8 @@
 <?php
 class ClientsService extends ServiceBase 
 {
-    private $ClientsList;
-    public function GetOnlineClients() { return $this->ClientsList; }
+    private static $ClientsList;
+    public function GetOnlineClients() { return self::$ClientsList; }
     public function Run()
     {
         $ClientsList = [];
@@ -13,13 +13,16 @@ class ClientsService extends ServiceBase
     public function GetOnlineLogins()
     {
         $logins = [];
-        foreach($this->ClientsList as $client)
+        foreach(self::$ClientsList as $client)
             $logins[] = $client->Login;
+
+        global $server;
+        $server->services[Services::LOGGER]->Write('[C] GetOnlineLogins returned: ' . $logins . ', size: ' . count($logins));
         return $logins;
     }
     public function IsClientOnline($login)
     {
-        foreach($this->ClientsList as $client)
+        foreach(self::$ClientsList as $client)
         {
             if($client->Login === $login)
                 return true;
@@ -29,9 +32,9 @@ class ClientsService extends ServiceBase
 
     public function Disconnect($client)
     {
-        foreach ($this->ClientsList as $key => $c) {
+        foreach (self::$ClientsList as $key => $c) {
             if ($c->Login === $client->Login) {
-                unset($this->ClientsList[$key]);
+                unset(self::$ClientsList[$key]);
                 break;
             }
         }
@@ -39,7 +42,7 @@ class ClientsService extends ServiceBase
 
     public function GetClientByConnection($connection)
     {
-        foreach($this->ClientsList as $client)
+        foreach(self::$ClientsList as $client)
         {
             if($client->Connection === $connection)
                 return $client;
@@ -48,7 +51,7 @@ class ClientsService extends ServiceBase
     }
     public function GetClient($login)
     {
-        foreach($this->ClientsList as $client)
+        foreach(self::$ClientsList as $client)
         {
             if($client->Login === $login)
                 return $client;
@@ -75,7 +78,8 @@ class ClientsService extends ServiceBase
         $server->services[Services::DB]->UpdateSignInInfo($login, $clientToken, time());
         $client = $server->services[Services::DB]->GetClientByToken($clientToken);
         $client->Connection = $connection;
-        $this->ClientsList[] = $client;
+        self::$ClientsList[] = $client;
+        $server->services[Services::LOGGER]->Write("[C] Count of clients online now is: " . count(self::$ClientsList));
         return $client;
     }
 }

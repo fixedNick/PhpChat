@@ -1,1 +1,40 @@
-
+[2023-11-21 16:40:09] [M] Message received: {"server_token":"5db396dcf6ba8c53","command":"sign-in","data":{"login":"1","password":"1"}}
+[2023-11-21 16:40:09] [M] Recognized command: sign-in
+[2023-11-21 16:40:09] [DB] Check credentials for `1`
+[2023-11-21 16:40:09] [DB] Updating sign-in info for `1`
+[2023-11-21 16:40:09] [DB] Update table Clients, result: 1
+[2023-11-21 16:40:09] [DB] Receiving client by `Token`...
+[2023-11-21 16:40:09] [DB] Client `1` with id `14` and Token `3fe466e0f806a30c` successfully received form db
+[2023-11-21 16:40:09] [C] Count of clients online now is: 1
+[2023-11-21 16:40:09] [C] GetOnlineLogins returned: Array, size: 1
+[2023-11-21 16:40:09] [M] Auth for client with login `1` is completed
+[2023-11-21 16:40:09] [M] Broadcast about new connection from `1` successfuly send to all clients
+[2023-11-21 16:40:11] [M] Message received: {"server_token":"5db396dcf6ba8c53","command":"sign-in","data":{"login":"2","password":"2"}}
+[2023-11-21 16:40:11] [M] Recognized command: sign-in
+[2023-11-21 16:40:11] [DB] Check credentials for `2`
+[2023-11-21 16:40:16] [M] Message received: {"server_token":"5db396dcf6ba8c53","command":"sign-in","data":{"login":"11","password":"11"}}
+[2023-11-21 16:40:16] [M] Recognized command: sign-in
+[2023-11-21 16:40:16] [DB] Check credentials for `11`
+[2023-11-21 16:40:22] [M] Message received: {"server_token":"5db396dcf6ba8c53","command":"sign-up","data":{"login":"123332123","password":"123332123"}}
+[2023-11-21 16:40:22] [M] Recognized command: sign-up
+[2023-11-21 16:40:22] [DB] Checking is login `123332123` free...
+[2023-11-21 16:40:22] [DB] Login `123332123` is [free]
+[2023-11-21 16:40:22] [DB] Saving client `123332123`
+[2023-11-21 16:40:22] Prepared query: `INSERT INTO clients (`Login`, `Password`) VALUES ('123332123','123332123')`
+[2023-11-21 16:40:22] [DB] Saved in db, result: 1
+[2023-11-21 16:40:22] [DB] Updating sign-in info for `123332123`
+[2023-11-21 16:40:22] [DB] Update table Clients, result: 1
+[2023-11-21 16:40:22] [DB] Receiving client by `Token`...
+[2023-11-21 16:40:22] [DB] Client `123332123` with id `21` and Token `713fa9269e0278b1` successfully received form db
+[2023-11-21 16:40:22] [C] Count of clients online now is: 1
+[2023-11-21 16:40:22] [C] GetOnlineLogins returned: Array, size: 1
+[2023-11-21 16:40:22] [M] Auth for client with login `123332123` is completed
+[2023-11-21 16:40:22] [M] Broadcast about new connection from `123332123` successfuly send to all clients
+[2023-11-21 16:43:17] [M] [-] Client disconnect process started..
+[2023-11-21 16:43:17] [M] [-] Client for disconnect found in localstorage: `123332123`
+[2023-11-21 16:43:17] [M] Broadcast about new connection from `123332123` successfuly send to all clients
+[2023-11-21 16:43:17] [M] [-] Disconnecting client `123332123` completed
+[2023-11-21 16:43:17] [M] [-] Client disconnect process started..
+[2023-11-21 16:43:17] [M] [-] Client for disconnect found in localstorage: `1`
+[2023-11-21 16:43:17] [M] Broadcast about new connection from `1` successfuly send to all clients
+[2023-11-21 16:43:17] [M] [-] Disconnecting client `1` completed
