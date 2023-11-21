@@ -4,12 +4,14 @@ class ClientsService extends ServiceBase
     private $server;
     public function __construct($server) {
         $this->server = $server;
+
         $cl1 = new Client();
         $cl1->Login ="some login";
         $cl2 = new Client();
         $cl2->Login ="some login 2";
         
-        $server->clients[] = [$cl1, $cl2];
+        $this->server->clients[] = $cl1;
+        $this->server->clients[] = $cl2;
     }
 
     public function GetOnlineClients() { return $this->server->clients; }

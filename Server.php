@@ -25,11 +25,9 @@ class Server
             Services::TOKEN => new TokenService($this),
             Services::MESSAGES => new MessagesService($this)
         ];
-	$this->services[Services::LOGGER]->Write("Server::Run called");
+	    $this->services[Services::LOGGER]->Write("Server::Run called");
         foreach($this->services as $service)
             $service->Run();
-
-        $this->services[Services::LOGGER]->Write('Server Run completed');
     }
 }
 $server = new Server();
