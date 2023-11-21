@@ -38,3 +38,53 @@
 [2023-11-21 16:43:17] [M] [-] Client for disconnect found in localstorage: `1`
 [2023-11-21 16:43:17] [M] Broadcast about new connection from `1` successfuly send to all clients
 [2023-11-21 16:43:17] [M] [-] Disconnecting client `1` completed
+[2023-11-21 14:23:08] Server::Run called
+[2023-11-21 14:23:08] [+] ClientsService started
+[2023-11-21 14:23:08] [+] DbService started
+[2023-11-21 14:23:27] Server::Run called
+[2023-11-21 14:23:27] [+] ClientsService started
+[2023-11-21 14:23:27] [+] DbService started
+[2023-11-21 14:23:28] Server::Run called
+[2023-11-21 14:23:28] [+] ClientsService started
+[2023-11-21 14:23:28] [+] DbService started
+[2023-11-21 14:23:31] Server::Run called
+[2023-11-21 14:23:31] [+] ClientsService started
+[2023-11-21 14:23:31] [+] DbService started
+[2023-11-21 14:23:32] Server::Run called
+[2023-11-21 14:23:32] [+] ClientsService started
+[2023-11-21 14:23:32] [+] DbService started
+[2023-11-21 14:23:33] Server::Run called
+[2023-11-21 14:23:33] [+] ClientsService started
+[2023-11-21 14:23:33] [+] DbService started
+[2023-11-21 14:23:37] Server::Run called
+[2023-11-21 14:23:37] [+] ClientsService started
+[2023-11-21 14:23:37] [+] DbService started
+[2023-11-21 14:23:51] Server::Run called
+[2023-11-21 14:23:51] [+] ClientsService started
+[2023-11-21 14:23:51] [+] DbService started
+[2023-11-21 14:23:51] [+] TokenService started
+[2023-11-21 14:23:51] [T] ServerToken Generated
+[2023-11-21 14:23:51] [DB] Updated server Token: 354603b9359a4dec
+[2023-11-21 14:23:51] [+] MessagesService started
+[2023-11-21 14:23:51] [M] Waiting for server Token
+[2023-11-21 14:23:51] [M] Server Token received, starting socket
+[2023-11-21 14:24:11] [M] [-] Client disconnect process started..
+[2023-11-21 14:24:11] [M] [-] Client not in local storage, disconnect completed
+[2023-11-21 14:24:34] [M] Message received: {"server_token":"354603b9359a4dec","command":"sign-in","data":{"login":"1","password":"1"}}
+[2023-11-21 14:24:34] [M] Recognized command: sign-in
+[2023-11-21 14:24:34] [DB] Check credentials for `1`
+[2023-11-21 14:24:38] [M] Message received: {"server_token":"354603b9359a4dec","command":"sign-up","data":{"login":"11","password":"11"}}
+[2023-11-21 14:24:38] [M] Recognized command: sign-up
+[2023-11-21 14:24:38] [DB] Checking is login `11` free...
+[2023-11-21 14:24:38] [DB] Login `11` is [free]
+[2023-11-21 14:24:38] [DB] Saving client `11`
+[2023-11-21 14:24:38] [DB] Saved in db, result: 1
+[2023-11-21 14:24:38] [DB] Updating sign-in info for `11`
+[2023-11-21 14:24:38] [DB] Update table Clients, result: 1
+[2023-11-21 14:24:38] [DB] Receiving client by `Token`...
+[2023-11-21 14:24:38] [DB] Client `11` with id `11` and Token `089395a3cf891419` successfully received form db
+[2023-11-21 14:24:38] [C] Count of clients online now is: 3
+[2023-11-21 14:24:38] [C] GetOnlineLogins returned: Array, size: 3
+[2023-11-21 14:24:38] [M] Auth for client with login `11` is completed
+[2023-11-21 14:24:39] [M] [-] Client disconnect process started..
+[2023-11-21 14:24:39] [M] [-] Client for disconnect found in localstorage: `11`

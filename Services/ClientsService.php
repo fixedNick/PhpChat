@@ -6,9 +6,9 @@ class ClientsService extends ServiceBase
         $this->server = $server;
 
         $cl1 = new Client();
-        $cl1->Login ="some login";
+        $cl1->Login ="TESTUSER1";
         $cl2 = new Client();
-        $cl2->Login ="some login 2";
+        $cl2->Login ="TESTUSER2";
         
         $this->server->clients[] = $cl1;
         $this->server->clients[] = $cl2;
