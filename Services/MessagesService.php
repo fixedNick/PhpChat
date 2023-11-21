@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '\../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Workerman\Worker;
 
@@ -16,7 +16,7 @@ class MessagesService extends ServiceBase
             sleep(1);
         }
         echo '[M] Server Token received, starting socket' . PHP_EOL;
-        $this->socket = new Worker("websocket://127.0.0.1:1234");
+        $this->socket = new Worker("websocket://0.0.0.0:1234");
         $this->socket->count = 16;
         $this->socket->onMessage = function($connection, $data)
         {
