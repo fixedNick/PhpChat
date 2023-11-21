@@ -2,7 +2,7 @@
 
 abstract class ServiceBase 
 {
-    abstract function Run();
+    abstract function Run($server);
 }
 
 ?>

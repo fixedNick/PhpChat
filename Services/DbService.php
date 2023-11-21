@@ -26,11 +26,15 @@ class TClients
 class DbService extends ServiceBase 
 {
     private $db; 
+    private $server;
 
+    public function __construct($server) {
+        $this->server = $server;
+    }
     public function Run()
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write('[+] DbService started');
+        
+        $this->server->services[Services::LOGGER]->Write('[+] DbService started');
         // 
         $host = "127.0.0.1";
         $user = "root";
@@ -40,47 +44,48 @@ class DbService extends ServiceBase
         $this->db = new mysqli($host, $user, $password, $database);
 
         if ($this->db->connect_error) {
-        $server->services[Services::LOGGER]->Write("Connection error: " . $this->db->connect_error);
+        $this->server->services[Services::LOGGER]->Write("Connection error: " . $this->db->connect_error);
         }
     }
 
     public function UpdateServerToken($token)
     {   
-        global $server;
-        $server->services[Services::LOGGER]->Write("[DB] Updated server Token: $token");
+        
+        $this->server->services[Services::LOGGER]->Write("[DB] Updated server Token: $token");
         $query = "UPDATE " . Tables::SERVER ." SET " . TServer::Token ."='$token' WHERE ID = 0";
         $this->db->query($query);
     }
 
     public function IsLoginFree($login)
     {
-        global $server;
+        
         $login = $this->db->real_escape_string($login);
-        $server->services[Services::LOGGER]->Write("[DB] Checking is login `$login` free...");
+        $this->server->services[Services::LOGGER]->Write("[DB] Checking is login `$login` free...");
         $query = "SELECT * FROM ". Tables::CLIENTS ." WHERE " .TClients::LOGIN. "='$login'";
         $result = $this->db->query($query);
 
         $isExists = $result->num_rows > 0 ? 'exists' : 'free';
-        $server->services[Services::LOGGER]->Write("[DB] Login `$login` is [".$isExists."]");
+        $this->server->services[Services::LOGGER]->Write("[DB] Login `$login` is [".$isExists."]");
         return $result->num_rows <= 0;
     }
 
     public function SaveClient($login, $password)
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write("[DB] Saving client `$login`");
+        
+        $this->server->services[Services::LOGGER]->Write("[DB] Saving client `$login`");
         $login = $this->db->real_escape_string($login);
         $password = $this->db->real_escape_string($password);
-
+        
         $query = "INSERT INTO ".Tables::CLIENTS." (`".TCLients::LOGIN."`, `".TCLients::PASSWORD."`) VALUES ('$login','$password')";
+        print($query);
         $result = $this->db->query($query);
-        $server->services[Services::LOGGER]->Write("[DB] Saved in db, result: $result");
+        $this->server->services[Services::LOGGER]->Write("[DB] Saved in db, result: $result");
     }
 
     public function IsCredentialsValid($login, $password)
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write("[DB] Check credentials for `$login`");
+        
+        $this->server->services[Services::LOGGER]->Write("[DB] Check credentials for `$login`");
         $login = $this->db->real_escape_string($login);
         $password = $this->db->real_escape_string($password);
 
@@ -91,11 +96,11 @@ class DbService extends ServiceBase
 
     public function UpdateSignInInfo($login, $token, $authTime)
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write("[DB] Updating sign-in info for `$login`");
+        
+        $this->server->services[Services::LOGGER]->Write("[DB] Updating sign-in info for `$login`");
         $query = "UPDATE ".Tables::CLIENTS." SET `".TClients::TOKEN."`='$token', `".TClients::LASTLOGIN."`='$authTime' WHERE `".TClients::LOGIN."`='$login'";
         $result = $this->db->query($query);
-        $server->services[Services::LOGGER]->Write("[DB] Update table Clients, result: $result");
+        $this->server->services[Services::LOGGER]->Write("[DB] Update table Clients, result: $result");
     }
 
     public function GetClient($login)
@@ -110,8 +115,8 @@ class DbService extends ServiceBase
 
     private function GetClientBy($sendingData, $by)
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write("[DB] Receiving client by `$by`...");
+        
+        $this->server->services[Services::LOGGER]->Write("[DB] Receiving client by `$by`...");
         $query = "SELECT * FROM `".Tables::CLIENTS."` WHERE `".$by."`='$sendingData'";
         $result = $this->db->query($query);
         if($result->num_rows <= 0)
@@ -124,7 +129,7 @@ class DbService extends ServiceBase
         $client->Token = $c[TClients::TOKEN];
         $client->LastLogin = $c[TClients::LASTLOGIN];
 
-        $server->services[Services::LOGGER]->Write("[DB] Client `".$client->Login."` with id `".$client->Id."` and Token `".$client->Token."` successfully received form db");
+        $this->server->services[Services::LOGGER]->Write("[DB] Client `".$client->Login."` with id `".$client->Id."` and Token `".$client->Token."` successfully received form db");
         return $client;
     }
 }
