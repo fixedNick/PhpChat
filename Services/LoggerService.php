@@ -2,7 +2,12 @@
 
 class LoggerService
 {
-    private $logPath = "log.txt";
+    private $logPath= "log.txt";
+    private $server;
+    public function __construct($server) {
+        $this->server = $server;
+    }
+
     public function Run()
     {
     }

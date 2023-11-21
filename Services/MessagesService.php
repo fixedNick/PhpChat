@@ -6,26 +6,31 @@ use Workerman\Worker;
 class MessagesService extends ServiceBase 
 {
     private $socket;
+    private $server;
+    public function __construct($server) {
+        $this->server = $server;
+    }
     public function Run()
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write('[+] MessagesService started');
-        $server->services[Services::LOGGER]->Write('[M] Waiting for server Token');
-        while($server->services[Services::TOKEN]->GetServerToken() === null)
+        
+        $this->server->services[Services::LOGGER]->Write('[+] MessagesService started');
+        $this->server->services[Services::LOGGER]->Write('[M] Waiting for server Token');
+        while($this->server->services[Services::TOKEN]->GetServerToken() === null)
         {
             sleep(1);
         }
-        $this->socket = new Worker("websocket://0.0.0.0:1234");
-        $server->services[Services::LOGGER]->Write('[M] Server Token received, starting socket');
+        $this->server->services[Services::LOGGER]->Write('[M] Server Token received, starting socket');
+        $this->socket = new Worker("websocket://127.0.0.1:1234");
+
         $this->socket->count = 16;
         $this->socket->onMessage = function($connection, $data)
         {
-            global $server;
-            $server->services[Services::LOGGER]->Write('[M] Message received: ' . $data);
+            
+            $this->server->services[Services::LOGGER]->Write('[M] Message received: ' . $data);
             $json = json_decode($data, true);
             if(isset($json['command']) && isset($json['server_token']))
             {
-                $server->services[Services::LOGGER]->Write('[M] Recognized command: ' . $json['command']);
+                $this->server->services[Services::LOGGER]->Write('[M] Recognized command: ' . $json['command']);
                 $this->OnCommand($connection, $json['command'], $json['server_token'], isset($json['data']) ? $json['data'] : '');
                 return;
             }
@@ -34,9 +39,9 @@ class MessagesService extends ServiceBase
             {
                 if($json['type'] == 'text' && isset($json['text']))
                 {
-                    global $server;
-                    $realToken = $server->services[Services::DB]->GetClient($json['from'])->Token;
-                    $isTokenValid = $server->services[Services::TOKEN]->IsTokensValid($json['client_token'], $realToken);
+                    
+                    $realToken = $this->server->services[Services::DB]->GetClient($json['from'])->Token;
+                    $isTokenValid = $this->server->services[Services::TOKEN]->IsTokensValid($json['client_token'], $realToken);
                     if($isTokenValid)
                     {
                         $this->SendTextMessage($json['from'], $json['to'], $json['text']);
@@ -47,40 +52,40 @@ class MessagesService extends ServiceBase
 
         $this->socket->onClose = function($connection)
         {
-            global $server;
-            $server->services[Services::LOGGER]->Write('[M] [-] Client disconnect process started..');
-            global $server;
-            $client = $server->services[Services::CLIENTS]->GetClientByConnection($connection);
+            
+            $this->server->services[Services::LOGGER]->Write('[M] [-] Client disconnect process started..');
+            
+            $client = $this->server->services[Services::CLIENTS]->GetClientByConnection($connection);
             if($client === null)
             {
-                $server->services[Services::LOGGER]->Write('[M] [-] Client not in local storage, disconnect completed');
+                $this->server->services[Services::LOGGER]->Write('[M] [-] Client not in local storage, disconnect completed');
                 return;
             }
             $this->OnDisconnect($client);
         };
 
         Worker::runAll();
-        $server->services[Services::LOGGER]->Write('[M] Socket successfully started');
-    }
+        $this->server->services[Services::LOGGER]->Write('[M] Socket successfully started');
+    }   
 
     private function OnDisconnect($client)
     {
-        global $server;
-        $server->services[Services::LOGGER]->Write("[M] [-] Client for disconnect found in localstorage: `".$client->Login."`");
-        $server->services[Services::CLIENTS]->Disconnect($client);
+        
+        $this->server->services[Services::LOGGER]->Write("[M] [-] Client for disconnect found in localstorage: `".$client->Login."`");
+        $this->server->services[Services::CLIENTS]->Disconnect($client);
         $this->BroadcastConnection($client->Login, false);
-        $server->services[Services::LOGGER]->Write("[M] [-] Disconnecting client `".$client->Login."` completed");
+        $this->server->services[Services::LOGGER]->Write("[M] [-] Disconnecting client `".$client->Login."` completed");
         unset($client);
     }
 
     // REQUIRED SERVER TOKEN
     private function OnCommand($connection, $command, $serverToken, $data = '')
     {
-        global $server;
-        $isValid = $server->services[Services::TOKEN]->IsServerTokenValid($serverToken);
+        
+        $isValid = $this->server->services[Services::TOKEN]->IsServerTokenValid($serverToken);
         if($isValid === false)
         {
-            $server->services[Services::LOGGER]->Write('[M] OnCommand - Server token is invalid.');
+            $this->server->services[Services::LOGGER]->Write('[M] OnCommand - Server token is invalid.');
             $this->SendError($connection, "Invalid s-token");
             return;
         }
@@ -108,11 +113,11 @@ class MessagesService extends ServiceBase
             $this->SendError($connection, 'Fields in `data`: [recepient_login] is required');
             return;
         }
-        global $server;
-        $status = $server->services[Services::CLIENTS]->IsClientOnline($data['recepient_login']);
+        
+        $status = $this->server->services[Services::CLIENTS]->IsClientOnline($data['recepient_login']);
         $response = json_encode(['status' => $status]);
         $this->_SendTextMessage($connection, $response);
-        $server->services[Services::LOGGER]->Write('[M] IsClientOnline status `'.$status.'` for client `'.$data['recepient_login'].'`');
+        $this->server->services[Services::LOGGER]->Write('[M] IsClientOnline status `'.$status.'` for client `'.$data['recepient_login'].'`');
     }
     private function SignUpCommand($connection, $data)
     {
@@ -121,8 +126,8 @@ class MessagesService extends ServiceBase
             $this->SendError($connection, 'Fields in `data`: [login, password] is required');
             return;    
         }
-        global $server;
-        $result = $server->services[Services::CLIENTS]->SignUpClient($data['login'], $data['password']);
+        
+        $result = $this->server->services[Services::CLIENTS]->SignUpClient($data['login'], $data['password']);
         if($result === false)
         {
             $this->SendError($connection, 'Client with login `'.$data['login'].'` already exists');
@@ -140,8 +145,8 @@ class MessagesService extends ServiceBase
             return;    
         }
         
-        global $server;
-        $result = $server->services[Services::DB]->IsCredentialsValid($data['login'], $data['password']);
+        
+        $result = $this->server->services[Services::DB]->IsCredentialsValid($data['login'], $data['password']);
         if($result === false)
         {
             $this->SendError($connection, 'Invalid credentials');
@@ -153,13 +158,13 @@ class MessagesService extends ServiceBase
 
     private function CompleteSignUpIn($connection, $login, $password)
     {
-        global $server;
-        $client = $server->services[Services::CLIENTS]->CompleteAuthReturnClient($connection, $login, $password);
-        $clientsOnline = $server->services[Services::CLIENTS]->GetOnlineLogins();
+        
+        $client = $this->server->services[Services::CLIENTS]->CompleteAuthReturnClient($connection, $login, $password);
+        $clientsOnline = $this->server->services[Services::CLIENTS]->GetOnlineLogins();
 
         $response = json_encode(['token' => $client->Token, 'clients-online' => $clientsOnline]);
         $this->_SendTextMessage($connection, $response);
-        $server->services[Services::LOGGER]->Write("[M] Auth for client with login `$login` is completed");
+        $this->server->services[Services::LOGGER]->Write("[M] Auth for client with login `$login` is completed");
         $this->BroadcastConnection($login, true);
     }
 
@@ -167,12 +172,12 @@ class MessagesService extends ServiceBase
 
     private function IsRequiredFieldsReceived($data, $fields)
     {
-        global $server;
+        
         foreach($fields as $field)
         {
             if(!isset($data[$field]))
             {
-                $server->services[Services::LOGGER]->Write("[M] Required field not received `$field`");
+                $this->server->services[Services::LOGGER]->Write("[M] Required field not received `$field`");
                 return false;
             }
         }
@@ -193,23 +198,23 @@ class MessagesService extends ServiceBase
 
     public function SendTextMessage($from, $to, $text)
     {
-        global $server;
-        $recepient = $server->services[Services::CLIENTS]->GetClient($to);
+        
+        $recepient = $this->server->services[Services::CLIENTS]->GetClient($to);
 
         if($recepient === null)
         {  
-            $server->services[Services::LOGGER]->Write("[M] Recepient with login `$to` not found");
+            $this->server->services[Services::LOGGER]->Write("[M] Recepient with login `$to` not found");
             return;
         }
 
-        $sender = $server->services[Services::CLIENTS]->GetClient($from);
+        $sender = $this->server->services[Services::CLIENTS]->GetClient($from);
         if($sender === null)
         {  
-            $server->services[Services::LOGGER]->Write("[M] Sender with login `$from` not found");
+            $this->server->services[Services::LOGGER]->Write("[M] Sender with login `$from` not found");
             return;
         }
-        $server->services[Services::LOGGER]->Write("[M] Message successfully send from `$from` to `$to`");
-        $sToken = $server->services[Services::TOKEN]->GetServerToken();
+        $this->server->services[Services::LOGGER]->Write("[M] Message successfully send from `$from` to `$to`");
+        $sToken = $this->server->services[Services::TOKEN]->GetServerToken();
         $this->_SendTextMessage($recepient->Connection, json_encode(['s_token' => $sToken, 'message_data' => ['from' => $sender->Login, 'text' => $text]]));
     }
 
@@ -220,14 +225,14 @@ class MessagesService extends ServiceBase
 
     public function BroadcastConnection($clientLogin, $connected)
     {
-        global $server;
-        $clients = $server->services[Services::CLIENTS]->GetOnlineClients();
+        
+        $clients = $this->server->services[Services::CLIENTS]->GetOnlineClients();
         foreach($clients as $c)
         {
             if($c->Login !== $clientLogin)
             {
                 $msg = json_encode([
-                    's_token' => $server->services[Services::TOKEN]->GetServerToken(),
+                    's_token' => $this->server->services[Services::TOKEN]->GetServerToken(),
                     'command' => [
                         'command_name' => 'connection_info', 
                         'is_connected' => $connected,
@@ -237,7 +242,7 @@ class MessagesService extends ServiceBase
                 $this->_SendTextMessage($c->Connection, $msg);
             }
         }
-        $server->services[Services::LOGGER]->Write("[M] Broadcast about new connection from `$clientLogin` successfuly send to all clients");
+        $this->server->services[Services::LOGGER]->Write("[M] Broadcast about new connection from `$clientLogin` successfuly send to all clients");
     }
 }
 ?>
